@@ -1,0 +1,8 @@
+{
+    "hyphy" : "/home/agselberg/hyphy-develop/hyphy", 
+    "res" : "/home/agselberg/hyphy-develop/res",
+    "fasta_dir" : "/home/agselberg/ray_finned/cleaned_fastas",
+    "tree_dir" : "/home/agselberg/ray_finned/lab_trees",
+	"results_directory" : "/home/agselberg/ray_finned/results-e_sc1",
+    "hyphy-analyses" : "/home/agselberg/hyphy-analyses"
+}
