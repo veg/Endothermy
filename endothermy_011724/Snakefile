@@ -362,7 +362,7 @@ rule label_tree_fg:
         tree = rules.raxml_ng_fo.output.output,
         partition_file = os.path.join(BASEDIR, "partitions", "{P}_FG.txt")
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.cl.SA.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_fgOnly_" + "{P}.nwk")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_fgOnly_" + "{P}.nwk")
     conda:
        "environment.yml"
     shell:
@@ -434,7 +434,7 @@ rule bustedph_filter_e:
 	output:
 		output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.FILTERED.{P}.BUSTEDPH.json")
 	conda:
-		"enviornment.yml"
+		"environment.yml"
 	shell:
 		"{HYPHY} {BUSTED_PH_BF} --alignment {input.msa} --tree {input.tree} --srv Yes --starting-points 10 --output {output.output} --branches FOREGROUND --comparison BACKGROUND"
 #end rule
