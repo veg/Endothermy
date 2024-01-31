@@ -87,20 +87,24 @@ rule all:
         expand(os.path.join(OUTDIR, "{GENE}.fa_codons.fasta"), GENE=CANDIDATE_GENES),
         expand(os.path.join(OUTDIR, "{GENE}.fa_codons_duplicates.json"), GENE=CANDIDATE_GENES),
         expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.fasta"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.fasta.raxml.bestTree"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.fasta.SLAC.json"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.fasta"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.json"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.fasta.raxml.bestTree"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.fasta.SLAC.json"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.FO2.fasta"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.FO2.json"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta"), GENE=CANDIDATE_GENES),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.raxml.bestTree"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.fasta"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.fasta.raxml.bestTree"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.fasta.SLAC.json"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.fasta"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.json"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.fasta.raxml.bestTree"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.fasta.SLAC.json"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.FO2.fasta"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.FO2.json"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta"), GENE=CANDIDATE_GENES),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.raxml.bestTree"), GENE=CANDIDATE_GENES),
         expand(os.path.join(BASEDIR, "data", "Partitions", "{P}_BG.txt"), P=PARTITION_LIST),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_fgOnly_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
-        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.{P}.BUSTEDPH.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_fgOnly_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.{P}.BUSTEDPH.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.FILTERED.fas"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.FILTERED.{P}.BUSTEDPH.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST)
     #end input
 #end rule
 
@@ -174,6 +178,15 @@ rule strike_ambigs:
       "{HYPHY} {STRIKE_AMBIGS_BF} --alignment {input.input_msa} --output {output.output}"
 #end rule
 
+rule fasta_cleaner:
+	input:
+		seq = rules.strike_ambigs.output.output
+	output:
+		seq = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.fasta")
+	shell:
+		"python scripts/clean-fasta.py {input.seq} {output.seq}"
+#end rule
+
 #----------------------------------------------------------------------------
 # Initial Phylogenetic inference
 #----------------------------------------------------------------------------
@@ -182,9 +195,9 @@ rule raxml_ng:
     params:
         THREADS = PPN
     input:
-        input = rules.strike_ambigs.output.output
+        input = rules.fasta_cleaner.output.seq
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.fasta.raxml.bestTree")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.fasta.raxml.bestTree")
     conda:
        "environment.yml"
     shell:
@@ -200,7 +213,7 @@ rule SLAC:
         codon_aln = rules.strike_ambigs.output.output,
         tree = rules.raxml_ng.output.output
     output: 
-        results = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.fasta.SLAC.json")
+        results = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.fasta.SLAC.json")
     conda:
        "environment.yml"
     shell: 
@@ -211,8 +224,8 @@ rule filter_outliers:
     input:
         slac_json = rules.SLAC.output.results
     output:
-        fasta = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.fasta"),
-        json  = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.json")
+        fasta = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.fasta"),
+        json  = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.json")
     conda:
        "environment.yml"
     shell:
@@ -229,7 +242,7 @@ rule raxml_ng_second:
     input:
         input = rules.filter_outliers.output.fasta
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.fasta.raxml.bestTree")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.fasta.raxml.bestTree")
     conda:
        "environment.yml"
     shell:
@@ -244,7 +257,7 @@ rule SLAC_second:
         codon_aln = rules.filter_outliers.output.fasta,
         tree = rules.raxml_ng_second.output.output
     output: 
-        results = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.fasta.SLAC.json")
+        results = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.fasta.SLAC.json")
     conda:
        "environment.yml"
     shell: 
@@ -255,8 +268,8 @@ rule filter_outliers_second:
     input:
         slac_json = rules.SLAC_second.output.results
     output:
-        fasta = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.FO2.fasta"),
-        json  = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.FilterOutliers.FO2.json")
+        fasta = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.FO2.fasta"),
+        json  = os.path.join(OUTDIR, "{GENE}.fa_codons.SA.cl.FilterOutliers.FO2.json")
     conda:
        "environment.yml"
     shell:
@@ -271,7 +284,7 @@ rule trim_fasta_id:
     input:
         input = rules.filter_outliers_second.output.fasta
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta")
     run:
         records = []
         with open(input.input, "r") as handle:
@@ -332,7 +345,7 @@ rule raxml_ng_fo:
     input:
         input = rules.trim_fasta_id.output.output
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.raxml.bestTree")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.raxml.bestTree")
     conda:
        "environment.yml"
     shell:
@@ -349,7 +362,7 @@ rule label_tree_fg:
         tree = rules.raxml_ng_fo.output.output,
         partition_file = os.path.join(BASEDIR, "data", "Partitions", "{P}_FG.txt"),   
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_fgOnly_{P}.nwk")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_fgOnly_{P}.nwk")
     conda:
        "environment.yml"
     shell:
@@ -361,7 +374,7 @@ rule label_tree_bg:
         tree = rules.label_tree_fg.output.output,
         partition_file = os.path.join(BASEDIR, "data", "Partitions", "{P}_BG.txt")
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_{P}.nwk")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.raxml.bestTree.labeled_{P}.nwk")
     conda:
        "environment.yml"
     shell:
@@ -378,27 +391,61 @@ rule busted_ph:
         msa =  rules.trim_fasta_id.output.output,
         tree = rules.label_tree_bg.output.output
     output:
-        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.FilterOutliers.FO2.fasta.{P}.BUSTEDPH.json")
+        output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.{P}.BUSTEDPH.json")
     conda:
        "environment.yml"
     shell:
         "{HYPHY} {BUSTED_PH_BF} --alignment {input.msa} --tree {input.tree} --srv Yes --starting-points 10 --output {output.output} --branches FOREGROUND --comparison BACKGROUND"
 #end rule
 
+## RUN BUSTED-E ON ALL BRANCHES##
+rule busted_e:
+	input:
+		seq = rules.trim_fasta_id.output.output,
+		tree = rules.raxml_ng_fo.output.output
+	output:
+		json = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.json"),
+		fits = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E-fit.lf")
+	conda:
+		"environment.yml"
+	shell:
+		"""
+		{HYPHY} LIBPATH={RES} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 5 --output {output.json} --error-sink Yes --save-fit {output.fits}
+		"""
+#end rule
+
+## BUSTED-E FILTERED FASTA
+rule busted_e_filter:
+	input:
+		e_json = rules.busted_e.output.json
+	output:
+		json = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.FILTERED.json"),
+		seq = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.FILTERED.fas")
+	shell:
+		"""
+		{HYPHY} LIBPATH={RES} error-filter {input.e_json} --output {output.seq} --output-json {output.json}
+		"""
+#end rule
+
+rule bustedph_filt_e:
+	input:
+		seq = rules.busted_e_filter.output.seq,
+		tree = rules.label_tree_bg.output.output
+	output:
+		output = os.path.join(OUTDIR, "{GENE}.fa_codons.ID.SA.cl.FilterOutliers.FO2.fasta.BUSTED-E.FILTERED.{P}.BUSTEDPH.json")
+	conda:
+		"enviornment.yml"
+	shell:
+		"{HYPHY} {BUSTED_PH_BF} --alignment {input.msa} --tree {input.tree} --srv Yes --starting-points 10 --output {output.output} --branches FOREGROUND --comparison BACKGROUND"
+#end rule
+		
+
+
+
+
 #----------------------------------------------------------------------------
 # End of file
 #----------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
 
 
 

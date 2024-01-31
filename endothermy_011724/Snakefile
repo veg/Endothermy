@@ -52,9 +52,10 @@ print("# We will process", len(CANDIDATE_GENES), "candidate gene files")
 # =============================================================================
 
 #HYPHY    = "hyphy"
-HYPHY     = "/home/aglucaci/anaconda3/envs/ENDOTHERMY/bin/hyphy"
+HYPHY     = "/home/agselberg/hyphy-develop/hyphy"
 #HYPHYMPI = "HYPHYMPI"
-HYPHYMPI  = "/home/aglucaci/anaconda3/envs/ENDOTHERMY/bin/HYPHYMPI"
+HYPHYMPI  = "/home/agselberg/hyphy-develop/HYPHYMPI"
+RES = "/home/agselberg/hyphy-develop/res"
 
 HYPHY_ANALYSES = os.path.join(BASEDIR, "hyphy-analyses")
 STRIKE_AMBIGS_BF = os.path.join(BASEDIR, "scripts", "strike-ambigs.bf")
