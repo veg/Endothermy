@@ -34,10 +34,10 @@ FASTA_DIR = config["fasta_dir"]
 TREE_DIR = config["tree_dir"]
 
 fasta_files = [filename for filename in os.listdir(FASTA_DIR) if filename.endswith(".fasta")]
-tree_files = [filename for filename in os.listdir(TREE_DIR) if filename.endswith(".nwk")]
-gene_names = [value for value in fasta_files if value +'.raxml.bestTree.labeled_Scenario_1.nwk' in tree_files]
+tree_files = [filename for filename in os.listdir(TREE_DIR) if filename.endswith(".bestTree")]
+gene_names = [value for value in fasta_files if value +'.raxml.bestTree' in tree_files]
 #gene_names = ['mitogene']
-#print(gene_names)
+print(gene_names)
 
 HYPHY    = config["hyphy"]
 RES      = config["res"]
@@ -94,7 +94,7 @@ rule clean_fasta:
 ## REMOVE HYPHENS FROM TREES##
 rule clean_tree:
     input:
-        tree = os.path.join(TREE_DIR, "{GENE}" + '.raxml.bestTree.labeled_Scenario_1.nwk')
+        tree = os.path.join(TREE_DIR, "{GENE}" + '.raxml.bestTree')
     output:
         tree = os.path.join(OUTDIR, "{GENE}.cleaned.ags.nwk")
     shell:

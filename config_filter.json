@@ -1,8 +1,8 @@
 {
     "hyphy" : "/home/agselberg/hyphy-develop/hyphy", 
     "res" : "/home/agselberg/hyphy-develop/res",
-    "fasta_dir" : "/home/agselberg/ray_finned/cleaned_fastas",
-    "tree_dir" : "/home/agselberg/ray_finned/lab_trees",
-	"results_directory" : "/home/agselberg/ray_finned/results-e_sc1",
+    "fasta_dir" : "/home/agselberg/ray_finned/results-e_sc1/fastas",
+    "tree_dir" : "/home/agselberg/ray_finned/results-e_sc1/trees",
+	"results_directory" : "/data/shares/veg/ray_finned/Complete/data/sc_1_busteds",
     "hyphy-analyses" : "/home/agselberg/hyphy-analyses"
 }
