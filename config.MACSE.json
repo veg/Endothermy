@@ -1,0 +1,5 @@
+ {
+    "Label": "Endothermy",
+    "Partition" : "Scenario_1,Scenario_2,Scenario_3,Scenario_4",
+    "DataDirectory": "Unaligned"
+}
