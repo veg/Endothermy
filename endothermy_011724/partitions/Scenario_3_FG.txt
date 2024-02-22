@@ -1,6 +1,0 @@
-Gasterochisma_melampus_GT2344 
-Istiophorus_platypterus_KU5428 
-Kajikia_albida_USNMT5391 
-Makaira_nigricans_KU5430 
-Tetrapturus_angustirostris 
-Xiphias_gladius_GCA016859285_Hughes 

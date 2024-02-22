@@ -1,8 +1,0 @@
-{"__default__": 
-  {
-  "cluster" : "qsub",
-  "nodes": 1,
-  "ppn": 1,
-  "name":"epyc2",
-  "walltime": "80:00:00"
-}}
