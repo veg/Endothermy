@@ -1,5 +1,3 @@
- {
-    "Label": "Endothermy",
-    "Partition" : "Scenario_1,Scenario_2,Scenario_3,Scenario_4",
-    "DataDirectory": "Unaligned"
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:9343152a6ceb8c4c1dd09b2b0d9df8de1acafe6e4fd1278e8cc583e2c47a1d9e
+size 130
