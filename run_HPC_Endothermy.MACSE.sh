@@ -24,7 +24,7 @@ echo "Executing HPC Snakemake command"
 # Execute the Snakemake command
 
 snakemake \
-      -s Snakefile_MACSE \
+      -s Snakefile_env \
       --cluster-config cluster.json \
       --cluster "qsub -V -l nodes={cluster.nodes}:ppn={cluster.ppn} -q {cluster.name} -l walltime={cluster.walltime} -e $LOGDIR -o $LOGDIR" \
       --jobs 100 all \
@@ -32,7 +32,7 @@ snakemake \
       --keep-going \
       --reason \
       --rerun-incomplete \
-      --latency-wait 300 
+      --latency-wait 60 
 
 
 # End Snakemake command
