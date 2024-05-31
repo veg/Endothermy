@@ -1,2 +1,14 @@
 .nfs0*
+RER/
+logs/
 scripts/*.json
+archive021523/
+archive_snakefiles/
+data/
+fastas/
+hyphy-analyses/
+logs_macse/
+practice.tree
+res_in_scenarios.py
+results/
+.snakemake/

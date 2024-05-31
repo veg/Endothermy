@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:5b045a4c84eec5c21558166f6afc4c42e543ffdb977b5313aed5beaa2f717f18
-size 119
+{"__default__": 
+  {
+  "cluster" : "qsub",
+  "nodes": "1",
+  "ppn": "16",
+  "name":"epyc2",
+  "walltime": "240:00:00"
+}}
