@@ -12,3 +12,6 @@ practice.tree
 res_in_scenarios.py
 results/
 .snakemake/
+scripts/seq3-fasta.py
+scripts/busted-e_result_summary_slkp.py
+scripts/test_load_json.py
