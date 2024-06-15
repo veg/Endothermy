@@ -302,7 +302,7 @@ rule busted:
         int_fits = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED-intfit.json")
     shell:
         """
-        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --eror-sink No --save-fit {output.fits} --intermediate-fits {output.int_fits} --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
+        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --error-sink No --save-fit {output.fits} --intermediate-fits {output.int_fits} --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
         """
 # end rule 
 
@@ -315,7 +315,7 @@ rule busted_fg:
         fits = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED_{P}-fit.lf")
     shell:
         """
-        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --eror-sink No --branches FOREGROUND --save-fit {output.fits} --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
+        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --error-sink No --branches FOREGROUND --save-fit {output.fits} --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
         """
 ###end rule 
 
@@ -328,7 +328,7 @@ rule busted_2_rates:
         fits = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED-fit_2rates.lf")
     shell:
         """
-        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --eror-sink No --save-fit {output.fits} --rates 2 --syn-rates 2 --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
+        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --error-sink No --save-fit {output.fits} --rates 2 --syn-rates 2 --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
         """
 
 #---------------------------------------------------------------------------- 
