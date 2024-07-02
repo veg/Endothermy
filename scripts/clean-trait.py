@@ -1,3 +1,4 @@
+### Script to replace hyphens with underscores in trait list files for hyphy analyses
 import sys
 import re
 

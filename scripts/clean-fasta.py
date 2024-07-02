@@ -1,3 +1,5 @@
+### script to replace hyphyens with underscores in fasta sequence names for hyphy analyses
+
 import sys
 import re
 

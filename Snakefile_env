@@ -7,7 +7,6 @@
 # Imports
 # =============================================================================
 import os
-#os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import sys
 import json
 import csv
@@ -54,10 +53,6 @@ def CheckMSA(msa):
         return False
     #end if
 #end method
-# Subset
-#CANDIDATE_GENES = CANDIDATE_GENES[0:20]
-#print("# We will process", len(CANDIDATE_GENES), "candidate gene files")
-#sys.exit(1)
 # =============================================================================
 # Software Settings
 # =============================================================================
@@ -66,10 +61,6 @@ HYPHYMPI = "HYPHYMPI"
 HYPHY_ANALYSES = os.path.join(BASEDIR, "hyphy-analyses")
 STRIKE_AMBIGS_BF = os.path.join(BASEDIR, "scripts", "strike-ambigs.bf")
 OUTDIR = os.path.join(BASEDIR, "results", LABEL + "_MACSE")
-#CANDIDATE_GENES = glob.glob(os.path.join(OUTDIR,'*.RD.SA.codons.cln.trim67.fa.raxml.bestTree'))
-#print("# We will process", len(CANDIDATE_GENES), "candidate gene files")
-#sys.exit(1)
-
 OUTDIR_BUSTED= os.path.join(os.path.join(BASEDIR, "results", LABEL + "_MACSE_ENV"))
 # Hyphy-analyses
 REMOVE_DUPS_BF = os.path.join(HYPHY_ANALYSES, "remove-duplicates", "remove-duplicates.bf")
@@ -100,23 +91,22 @@ rule all:
         expand(os.path.join(OUTDIR, "{GENE}.RD.SA.codons.cln.trim67.fa.raxml.bestTree.labeled_fg-nuOnly_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
         expand(os.path.join(OUTDIR, "{GENE}.RD.SA.codons.cln.trim67.fa.raxml.bestTree.labeled_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED.json"), GENE=CANDIDATE_GENES),
-        #expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED_{P}.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
-        #expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED_2rates.json"), GENE=CANDIDATE_GENES),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED-E.json"), GENE=CANDIDATE_GENES),
-        #expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED-E_2rates.json"), GENE=CANDIDATE_GENES),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.FILTER.json"), GENE=CANDIDATE_GENES),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.FILTER.fasta"), GENE=CANDIDATE_GENES),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.FILTERED.labeled_fgOnly_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.FILTERED.labeled_fg-nuOnly_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.FILTERED.labeled_{P}.nwk"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
         expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.{P}.filtered.BUSTED-PH.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
-        #expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.{P}.BUSTED-PH.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
+        expand(os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.{P}.BUSTED-PH.json"), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
        # expand(), GENE=CANDIDATE_GENES, P=PARTITION_LIST),
        # expand(), GENE=CANDIDATE_GENES),
 
 # =============================================================================
-# Individual rules
+# Individual rules: preprocessing steps
 # =============================================================================
+
+# remove unpermitted characters from sequence names
 rule clean:
     input:
         input = os.path.join(DATA_DIRECTORY, "{GENE}")
@@ -138,6 +128,8 @@ do
     fi;
 done
 """
+
+# trim non-homologous fragments with MACSE
 rule macse_trim:
     input:
         input = rules.clean.output.output
@@ -147,6 +139,8 @@ rule macse_trim:
     shell:
         "macse -prog trimNonHomologousFragments -seq {input.input} -min_homology_to_keep_seq 0.4 -out_NT {output.codons} -out_AA {output.aa}"
 #end rule
+
+# align sequences with MACSE
 rule macse:
     input:
         input = rules.macse_trim.output.codons
@@ -159,8 +153,8 @@ rule macse:
         sed -i 's/!/N/g' {output.codons}
         """
 #end rule
+
 # Get rid of internal stop codons
-# hyphy cln Universal /Users/sweaver/Programming/hyphy/HIV_RT.nex "No/No" /Users/sweaver/Programming/hyphy/HIV_RT_cleaned.nex
 rule cln:
    input:
        input = rules.macse.output.codons
@@ -169,6 +163,8 @@ rule cln:
    shell:
        "{HYPHY} CLN Universal {input.input} 'No/No' {output.output}"
 #end rule
+
+# replace ambiguous sequences with ---
 rule strike_ambigs_msa:
    input:
        input_msa = rules.cln.output.output
@@ -177,6 +173,8 @@ rule strike_ambigs_msa:
    shell:
       "{HYPHY} {STRIKE_AMBIGS_BF} --alignment {input.input_msa} --output {output.output}"
 #end rule
+
+# remove duplicate sequences
 rule remove_duplicates_msa:
    input:
        input_msa = rules.strike_ambigs_msa.output.output
@@ -185,7 +183,8 @@ rule remove_duplicates_msa:
    shell:
       "{HYPHY} {REMOVE_DUPS_BF} --msa {input.input_msa} --output {output.output} ENV='DATA_FILE_PRINT_FORMAT=9'"
 #end rule
-#  /home/aglucaci/trimal/source/trimal -in E1755.unlagined.nodup.fasta.codons.fa -out test2.fasta -gt 0.67
+
+# trimal for automated alignment trimming
 rule trimal:
    input:
        input = rules.remove_duplicates_msa.output.output
@@ -194,6 +193,8 @@ rule trimal:
    shell:
        "/home/agselberg/trimal/source/trimal -in {input.input} -out {output.output} -gt 0.67"
 #end rule
+
+# raxml for gene trees
 rule raxml_ng_msa:
     params:
         THREADS = 1 # note: this will not run if too many threads
@@ -204,34 +205,8 @@ rule raxml_ng_msa:
     shell:
         "raxml-ng --model GTR+G --msa {input.input} --threads {params.THREADS} --seed 2 --redo"
 #end rule 
-#rule prepare_bg_msa:
-#    input:
-#        foreground_file = os.path.join(BASEDIR, "data", "Partitions", "{P}_FG.txt"),
-#        nuisance_file = os.path.join(BASEDIR, "data", "Partitions", "{P}_Nuisance.txt"),
-#        all_species = os.path.join(BASEDIR, "data", "Partitions", "All_Species.txt")
-#    output:
-#        background_file = os.path.join(BASEDIR, "data", "Partitions", "{P}_BG.txt")
-#    run:
-#        # --- Read in data
-#        with open(input.all_species, "r") as f:
-#            all_species = [line for line in f]
-#        #end with
-#        with open(input.nuisance_file, "r") as f:
-#            nu_species = [line for line in f]
-#        #end with
-#        with open(input.foreground_file) as f:
-#            fg_species = [line for line in f]
-#        #end with
-#        # --- Create BG partition
-#        species_no_nu = [item for item in all_species if item not in nu_species]
-#        bg_species = [item for item in species_no_nu if item not in fg_species]
-#        # --- Write to file
-#        with open(output.background_file, "w") as f:
-#            for line in bg_species:
-#                f.write(line)
-#            #end for
-#        #end with
-##end rule
+
+# label gene trees with FOREGROUND species/nodes
 rule label_tree_fg:
     input:
         tree = rules.raxml_ng_msa.output.output,
@@ -241,6 +216,8 @@ rule label_tree_fg:
     shell:
         "{HYPHY} {LABEL_TREE_BF} --tree {input.tree} --list {input.partition_file} --output {output.output} --internal-nodes 'Parsimony' --label FOREGROUND" 
 #end rule
+
+# label gene trees with NUISANCE species/nodes
 rule label_tree_nu:
     input:
         tree = rules.label_tree_fg.output.output,
@@ -250,6 +227,8 @@ rule label_tree_nu:
     shell:
         "{HYPHY} {LABEL_TREE_BF} --tree {input.tree} --list {input.partition_file} --output {output.output} --internal-nodes 'Parsimony' --label NUISANCE" 
 #end rule
+
+# label all unlabeled branches on gene trees as BACKGROUND
 rule label_tree_bg:
     input:
         tree = rules.label_tree_nu.output.output,
@@ -276,31 +255,6 @@ rule busted:
         """
 ###end rule 
 
-rule busted_fg:
-    input:
-        seq = rules.trimal.output.output,
-        tree = rules.label_tree_bg.output.output
-    output:
-        json = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED_{P}.json"), 
-        fits = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED_{P}-fit.lf")
-    shell:
-        """
-        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --eror-sink No --branches FOREGROUND --save-fit {output.fits} --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
-        """
-###end rule 
-
-rule busted_2_rates:
-    input:
-        seq = rules.trimal.output.output,
-        tree = rules.raxml_ng_msa.output.output
-    output:
-        json = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED_2rates.json"), 
-        fits = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED-fit_2rates.lf")
-    shell:
-        """
-        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --eror-sink No --save-fit {output.fits} --rates 2 --syn-rates 2 --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1'
-        """
-
 #---------------------------------------------------------------------------- 
 # Run BUSTED WITH ERROR SINK COMPONENT
 #---------------------------------------------------------------------------- 
@@ -319,21 +273,7 @@ rule busted_e:
         """
 ###end rule 
 
-## RUN BUSTED-E ON ALL BRANCHES##
-rule busted_e_2_rates:
-    input:
-        seq = rules.trimal.output.output,
-        tree = rules.raxml_ng_msa.output.output
-    output:
-        json = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED-E_2rates.json"), 
-        fits = os.path.join(OUTDIR_BUSTED, "{GENE}.RD.SA.codons.cln.trim67.fa.BUSTED-E-fit-2rates.lf")
-    shell:
-        """
-        {HYPHY} BUSTED --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --error-sink Yes --save-fit {output.fits} --rates 2 --syn-rates 2 --output {output.json} ENV='TOLERATE_NUMERICAL_ERRORS=1;'
-        """
-###end rule 
-
-###end rule 
+# filter script to convert BUSTED-E to filtered fas file
 rule filter:
     input:
         e_json = rules.busted_e.output.json
@@ -346,6 +286,7 @@ rule filter:
         """
 ###end rule 
 
+# obtain tree from filtered fas file
 rule get_filtered_tree:
     input:
         seq = rules.filter.output.seq
@@ -358,6 +299,7 @@ rule get_filtered_tree:
         tail -n 1 {input.seq} > {output.tree}
         """
 
+# label FOREGROUND branches/nodes in tree after alignment filtering
 rule label_filtered_fg:
     input:
         tree = rules.get_filtered_tree.output.tree,
@@ -367,6 +309,8 @@ rule label_filtered_fg:
     shell:
         "{HYPHY} {LABEL_TREE_BF} --tree {input.tree} --list {input.partition_file} --output {output.output} --internal-nodes 'Parsimony' --label FOREGROUND" 
 #end rule
+
+# label NUISANCE branches/nodes in tree after alignment filtering
 rule label_filtered_nu:
     input:
         tree = rules.label_filtered_fg.output.output,
@@ -376,6 +320,8 @@ rule label_filtered_nu:
     shell:
         "{HYPHY} {LABEL_TREE_BF} --tree {input.tree} --list {input.partition_file} --output {output.output} --internal-nodes 'Parsimony' --label NUISANCE" 
 #end rule
+
+# label all remaining branches/nodes in tree (after alignment filtering) as BACKGROUND
 rule label_filtered_bg:
     input:
         tree = rules.label_filtered_nu.output.output,
@@ -388,7 +334,7 @@ rule label_filtered_bg:
 #---------------------------------------------------------------------------- 
 # Run BUSTED-PH
 #---------------------------------------------------------------------------- 
-## RUN BUSTED-PH AFTER FILTERING##
+## RUN BUSTED-PH WITH FILTERED FASTA##
 rule busted_ph_filtered:
     input:
         seq = rules.get_filtered_tree.output.seq,
@@ -400,7 +346,8 @@ rule busted_ph_filtered:
         {HYPHY} {BUSTED_PH_BF} --alignment {input.seq} --tree {input.tree} --srv Yes --starting-points 10 --branches FOREGROUND --output {output.json} --comparison BACKGROUND ENV='TOLERATE_NUMERICAL_ERRORS=1'
         """
 #end rule 
-## RUN BUSTED-PH WITHOUT FILTERING##
+
+## RUN BUSTED-PH WITH UNFILTERED FASTA##
 rule busted_ph_unfiltered:
     input:
         seq = rules.trimal.output.output,
