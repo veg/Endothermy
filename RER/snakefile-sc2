@@ -1,0 +1,28 @@
+import os, sys
+
+with open("config_RER.json", "r") as input_sc:
+	config = json.load(input_sc)
+
+dataDirectory     = config["data"]
+resultDirectory   = config["results"]
+
+FILES = glob_wildcards(dataDirectory + "{filename}.aa").filename
+print (FILES)
+
+callables = {
+    'hyphy' : '/home/agselberg/hyphy-develop/hyphy LIBPATH=/home/agselberg/hyphy-develop/res /home/agselberg/hyphy-analyses/RER/RER.bf'
+}
+
+rule all:
+     input:
+         expand(resultDirectory + "{file}.{type}", file = FILES, type = ['RER.json.gz']),
+
+rule run_fel:
+     input:
+         msa = dataDirectory + "{file}.aa",
+     output:
+          json = resultDirectory + "{file}.RER.json.gz",
+     threads: 2
+     shell:
+         '%s  --alignment {input.msa} --tree Rooted_205sp_Tree.nwk --output {output.json}  --branches AUXIS_ROCHEI_KU5343  --branches CARCHARODON_CARCHARIAS_GCF017639515  --branches EUTHYNNUS_AFFINIS_KU6772  --branches EUTHYNNUS_ALLETTERATUS_USNMT5429  --branches KATSUWONUS_PELAMIS_KU5386  --branches THUNNUS_ALALUNGA  --branches THUNNUS_ALBACARES_KU5387  --branches THUNNUS_ATLANTICUS_KU5423  --branches THUNNUS_MACCOYII  --branches THUNNUS_OBESUS_CBMMIYAT10  --branches THUNNUS_ORIENTALIS_NSMT_P93077  --branches THUNNUS_THYNNUS_CBMMIYAT9  --branches THUNNUS_TONGGOL_STRIBFT04918 --full-model No --branch-level-analysis Yes ENV="TOLERATE_NUMERICAL_ERRORS=1;GZIP_OUTPUT=TRUE;"' %  callables['hyphy']
+         

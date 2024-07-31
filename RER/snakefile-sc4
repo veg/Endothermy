@@ -1,0 +1,28 @@
+import os, sys
+
+with open("config_RER.json", "r") as input_sc:
+	config = json.load(input_sc)
+
+dataDirectory     = config["data"]
+resultDirectory   = config["results"]
+
+FILES = glob_wildcards(dataDirectory + "{filename}.aa").filename
+print (FILES)
+
+callables = {
+    'hyphy' : '/home/agselberg/hyphy-develop/hyphy LIBPATH=/home/agselberg/hyphy-develop/res /home/agselberg/hyphy-analyses/RER/RER.bf'
+}
+
+rule all:
+     input:
+         expand(resultDirectory + "{file}.{type}", file = FILES, type = ['RER.json.gz']),
+
+rule run_fel:
+     input:
+         msa = dataDirectory + "{file}.aa",
+     output:
+          json = resultDirectory + "{file}.RER.json.gz",
+     threads: 2
+     shell:
+         '%s  --alignment {input.msa} --tree Rooted_205sp_Tree.nwk --output {output.json}  --branches ARCTOCEPHALUS_GAZELLA_GCA900642305  --branches BALAENOPTERA_MUSCULUS_GCF0098732452  --branches CALLORHINUS_URSINUS_GCF003265705  --branches CHELONIA_MYDAS_GCF_015237465  --branches ESCHRICHTIUS_ROBUSTUS_GCA004363415  --branches EUDYPTES_CHRYSOLOPHUS_GCA010084205  --branches EUDYPTES_FILHOLI_GCA010085365  --branches EUDYPTES_MOSELEYI_GCA010082375  --branches LAMPRIS_IMMACULATUS_A05  --branches MEGAPTERA_NOVAEANGLIAE_GCA0043293851  --branches MIROUNGA_ANGUSTIROSTRIS_GCA004023865  --branches MIROUNGA_LEONINA_GCF011800145 --full-model No --branch-level-analysis Yes ENV="TOLERATE_NUMERICAL_ERRORS=1;GZIP_OUTPUT=TRUE;"' %  callables['hyphy']
+         
